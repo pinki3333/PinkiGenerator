@@ -101,7 +101,6 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
       SHEET_NAME: ${{ secrets.SHEET_NAME }}
-      INITIAL_CAPITAL: ${{ secrets.INITIAL_CAPITAL }}
       LOOP_FREQ_SECONDS: ${{ secrets.LOOP_FREQ_SECONDS }}
     steps:
       - name: Checkout
