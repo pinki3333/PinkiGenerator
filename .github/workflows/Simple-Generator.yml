@@ -28,8 +28,8 @@ jobs:
       # Generator env (from secrets)
       GDRIVE_FILE_ID: ${{ secrets.GDRIVE_FILE_ID }}
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-      GENERATOR_API_KEY: ${{ secrets.GEN_API_KEY }}
-      TOTP_SECRET: ${{ secrets.TOTP_SECRET }}
+      GENERATOR_API_KEY: ${{ secrets.GENERATOR_API_KEY }}
+      GENERATOR_TOTP_SECRET: ${{ secrets.GENERATOR_TOTP_SECRET }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
@@ -95,8 +95,8 @@ jobs:
       # generator env (from secrets)
       GDRIVE_FILE_ID: ${{ secrets.GDRIVE_FILE_ID }}
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-      GENERATOR_API_KEY: ${{ secrets.GEN_API_KEY }}
-      TOTP_SECRET: ${{ secrets.TOTP_SECRET }}
+      GENERATOR_API_KEY: ${{ secrets.GENERATOR_API_KEY }}
+      GENERATOR_TOTP_SECRET: ${{ secrets.GENERATOR_TOTP_SECRET }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
