@@ -6,7 +6,6 @@ on:
     - cron: "15 3 * * 1-5"
     # 14:15 IST == 08:45 UTC (Mon-Fri)
     - cron: "45 8 * * 1-5"
-  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -17,7 +16,7 @@ concurrency:
 
 jobs:
   early:
-    if: github.event.schedule == '15 3 * * 1-5' || github.event_name == 'workflow_dispatch'
+    if: github.event.schedule == '15 3 * * 1-5'
     runs-on: ubuntu-latest
     timeout-minutes: 370   # ~6h 10m hard cap
     env:
@@ -41,8 +40,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Ensure lock folder
-        run: |
-          mkdir -p .gha-locks
+        run: mkdir -p .gha-locks
 
       - name: Acquire lock (commit a lock file)
         run: |
@@ -63,15 +61,16 @@ jobs:
       - name: Install dependencies (bootstrap only)
         run: |
           python -m pip install --upgrade pip
-          pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client pytz
+          pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client pytz holidays
+
+      - name: Skip if holiday, weekend, or market closed
+        run: python scripts/market_check.py
 
       - name: Download private generator script from Google Drive
-        run: |
-          python scripts/runner.py --download-only
+        run: python scripts/runner.py --download-only
 
       - name: Run generator (EARLY)
-        run: |
-          python scripts/runner.py --run
+        run: python scripts/runner.py --run
 
       - name: Release lock (always)
         if: always()
@@ -84,7 +83,7 @@ jobs:
           git push || true
 
   late:
-    if: github.event.schedule == '45 8 * * 1-5' || github.event_name == 'workflow_dispatch'
+    if: github.event.schedule == '45 8 * * 1-5'
     runs-on: ubuntu-latest
     timeout-minutes: 100   # ~1h 40m
     env:
@@ -114,7 +113,10 @@ jobs:
       - name: Install dependencies (bootstrap only)
         run: |
           python -m pip install --upgrade pip
-          pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client pytz
+          pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client pytz holidays
+
+      - name: Skip if holiday, weekend, or market closed
+        run: python scripts/market_check.py
 
       - name: Calculate wait deadline (15:30 IST)
         id: deadline
@@ -125,7 +127,6 @@ jobs:
           now = datetime.datetime.now(tz)
           target = now.replace(hour=15, minute=30, second=0, microsecond=0)
           if (target - now).total_seconds() < 0:
-              # already past 15:30; exit early
               print("DEADLINE=0")
           else:
               print(f"DEADLINE={int(target.timestamp())}")
@@ -166,12 +167,10 @@ jobs:
           git push
 
       - name: Download private generator script from Google Drive
-        run: |
-          python scripts/runner.py --download-only
+        run: python scripts/runner.py --download-only
 
       - name: Run generator (LATE)
-        run: |
-          python scripts/runner.py --run
+        run: python scripts/runner.py --run
 
       - name: Release lock (always)
         if: always()
