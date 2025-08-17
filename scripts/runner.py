@@ -9,8 +9,7 @@ from pathlib import Path
 
 from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
-
-# Minimal bootstrap: fetch generator script from Google Drive (private) and run it.
+from googleapiclient.http import MediaIoBaseDownload
 
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 
@@ -21,7 +20,6 @@ def get_service():
         sys.exit(1)
 
     try:
-        # Accept either plain JSON or base64-encoded JSON:
         if sa_json.strip().startswith("{"):
             info = json.loads(sa_json)
         else:
@@ -31,21 +29,21 @@ def get_service():
         sys.exit(1)
 
     creds = Credentials.from_service_account_info(info, scopes=SCOPES)
-    return build("drive", "v3", credentials=creds, cache_discovery=False)
+    return build("drive", "v3", credentials=creds)
 
 def download_file(file_id: str, dest: Path):
     svc = get_service()
     request = svc.files().get_media(fileId=file_id)
-    from googleapiclient.http import MediaIoBaseDownload
-    import io
-    fh = io.BytesIO()
-    downloader = MediaIoBaseDownload(fh, request)
-    done = False
-    while not done:
-        status, done = downloader.next_chunk()
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    with open(dest, "wb") as f:
-        f.write(fh.getvalue())
+
+    tmp = dest.with_suffix(".tmp")
+    with open(tmp, "wb") as f:
+        downloader = MediaIoBaseDownload(f, request)
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
+            if status:
+                print(f"Download progress: {int(status.progress() * 100)}%")
+    tmp.replace(dest)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -68,15 +66,12 @@ def main():
         return
 
     if args.run:
-        # Pass through current environment; generator.py uses env for creds & config.
         print("Running generator.py ...")
-        # Use unbuffered mode so logs flush quickly
         env = os.environ.copy()
         cmd = [sys.executable, "-u", str(generator_path)]
-        # Pipe output so it shows in Actions logs
         proc = subprocess.Popen(cmd, env=env)
-        proc.wait()
-        sys.exit(proc.returncode)
+        returncode = proc.wait()
+        sys.exit(returncode)
 
 if __name__ == "__main__":
     main()
