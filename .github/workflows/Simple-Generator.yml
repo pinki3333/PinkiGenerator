@@ -1,97 +1,27 @@
-name: Simple Generator
+name: Goldbees Trader
 
 on:
   schedule:
-    # 08:45 IST == 03:15 UTC (Mon-Fri)
-    - cron: "15 3 * * 1-5"
-    # 14:15 IST == 08:45 UTC (Mon-Fri)
-    - cron: "45 8 * * 1-5"
+    # 09:45 IST == 04:15 UTC (Mon-Fri)
+    - cron: "15 4 * * 1-5"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: simple-generator
+  group: goldbees-trader
   cancel-in-progress: false
 
 jobs:
-  early:
-    if: github.event.schedule == '15 3 * * 1-5'
+  trade:
     runs-on: ubuntu-latest
-    timeout-minutes: 370   # ~6h 10m hard cap
+    timeout-minutes: 340   # ~5h 40m hard cap
     env:
       TIMEZONE: Asia/Kolkata
-      LOCK_PATH: .gha-locks/generator.lock
-      RUN_MODE: EARLY
-      END_TIME_IST: "14:45"        # Job 1 target end
-      # Generator env (from secrets)
-      GDRIVE_FILE_ID: ${{ secrets.GDRIVE_FILE_ID }}
-      GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
-      GENERATOR_API_KEY: ${{ secrets.GENERATOR_API_KEY }}
-      GENERATOR_TOTP_SECRET: ${{ secrets.GENERATOR_TOTP_SECRET }}
-      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
-      SHEET_NAME: ${{ secrets.SHEET_NAME }}
-      INITIAL_CAPITAL: ${{ secrets.INITIAL_CAPITAL }}
-      LOOP_FREQ_SECONDS: ${{ secrets.LOOP_FREQ_SECONDS }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Ensure lock folder
-        run: mkdir -p .gha-locks
-
-      - name: Acquire lock (commit a lock file)
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin
-          git pull --ff-only
-          echo "run_id=${GITHUB_RUN_ID}, started=$(date -u +%FT%TZ)" > "${LOCK_PATH}"
-          git add "${LOCK_PATH}"
-          git commit -m "LOCK acquire: ${GITHUB_RUN_ID}" || echo "No changes to commit"
-          git push
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies (bootstrap only)
-        run: |
-          python -m pip install --upgrade pip
-          pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client pytz holidays
-
-      - name: Skip if holiday, weekend, or market closed
-        run: python scripts/market_check.py
-
-      - name: Download private generator script from Google Drive
-        run: python scripts/runner.py --download-only
-
-      - name: Run generator (EARLY)
-        run: python scripts/runner.py --run
-
-      - name: Release lock (always)
-        if: always()
-        run: |
-          git fetch origin
-          git pull --ff-only
-          rm -f "${LOCK_PATH}"
-          git add -A
-          git commit -m "LOCK release: ${GITHUB_RUN_ID}" || echo "No changes to commit"
-          git push || true
-
-  late:
-    if: github.event.schedule == '45 8 * * 1-5'
-    runs-on: ubuntu-latest
-    timeout-minutes: 100   # ~1h 40m
-    env:
-      TIMEZONE: Asia/Kolkata
-      LOCK_PATH: .gha-locks/generator.lock
-      RUN_MODE: LATE
-      END_TIME_IST: "15:30"        # Job 2 target end
-      # generator env (from secrets)
+      RUN_MODE: LIVE
+      END_TIME_IST: "15:00"        # End trading at 3:00 PM IST
+      TICKER: GOLDBEES
+      # Secrets
       GDRIVE_FILE_ID: ${{ secrets.GDRIVE_FILE_ID }}
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
       GENERATOR_API_KEY: ${{ secrets.GENERATOR_API_KEY }}
@@ -110,7 +40,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies (bootstrap only)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client pytz holidays
@@ -118,66 +48,8 @@ jobs:
       - name: Skip if holiday, weekend, or market closed
         run: python scripts/market_check.py
 
-      - name: Calculate wait deadline (15:30 IST)
-        id: deadline
-        run: |
-          python - << 'PY'
-          import os, sys, datetime, zoneinfo
-          tz = zoneinfo.ZoneInfo(os.environ.get("TIMEZONE","Asia/Kolkata"))
-          now = datetime.datetime.now(tz)
-          target = now.replace(hour=15, minute=30, second=0, microsecond=0)
-          if (target - now).total_seconds() < 0:
-              print("DEADLINE=0")
-          else:
-              print(f"DEADLINE={int(target.timestamp())}")
-          PY
-        shell: bash
-
-      - name: Wait for lock to clear (until 15:30 IST)
-        if: steps.deadline.outputs.DEADLINE != '0'
-        run: |
-          set -e
-          DEADLINE="${{ steps.deadline.outputs.DEADLINE }}"
-          echo "Waiting for lock until epoch ${DEADLINE}..."
-          while true; do
-            git fetch origin
-            git pull --ff-only
-            if [ ! -f "${LOCK_PATH}" ]; then
-              echo "No lock present; proceeding."
-              break
-            fi
-            NOW=$(date +%s)
-            if [ "$NOW" -ge "$DEADLINE" ]; then
-              echo "Deadline reached; exiting without generator."
-              exit 0
-            fi
-            sleep 5
-          done
-
-      - name: Acquire lock (commit a lock file)
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git fetch origin
-          git pull --ff-only
-          mkdir -p .gha-locks
-          echo "run_id=${GITHUB_RUN_ID}, started=$(date -u +%FT%TZ)" > "${LOCK_PATH}"
-          git add "${LOCK_PATH}"
-          git commit -m "LOCK acquire (late): ${GITHUB_RUN_ID}" || echo "No changes to commit"
-          git push
-
       - name: Download private generator script from Google Drive
         run: python scripts/runner.py --download-only
 
-      - name: Run generator (LATE)
+      - name: Run generator
         run: python scripts/runner.py --run
-
-      - name: Release lock (always)
-        if: always()
-        run: |
-          git fetch origin
-          git pull --ff-only
-          rm -f "${LOCK_PATH}"
-          git add -A
-          git commit -m "LOCK release (late): ${GITHUB_RUN_ID}" || echo "No changes to commit"
-          git push || true

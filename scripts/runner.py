@@ -56,7 +56,10 @@ def main():
         print("ERROR: GDRIVE_FILE_ID not set.", file=sys.stderr)
         sys.exit(1)
 
-    generator_path = Path("generator.py")
+    # Save generator script only in runner temp space (not repo)
+    work_dir = Path.cwd() / ".runner_tmp"
+    work_dir.mkdir(parents=True, exist_ok=True)
+    generator_path = work_dir / "generator.py"
 
     print("Downloading private generator script from Google Drive...")
     download_file(file_id, generator_path)
