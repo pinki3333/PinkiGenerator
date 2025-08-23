@@ -19,9 +19,11 @@ jobs:
     env:
       TIMEZONE: Asia/Kolkata
       RUN_MODE: LIVE
+      START_TIME_IST: "09:45"
       END_TIME_IST: "15:00"        # End trading at 3:00 PM IST
-      TICKER: GOLDBEES
+     
       # Secrets
+      TICKER: ${{ secrets.TICKER }}
       GDRIVE_FILE_ID: ${{ secrets.GDRIVE_FILE_ID }}
       GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
       GENERATOR_API_KEY: ${{ secrets.GENERATOR_API_KEY }}
@@ -30,6 +32,7 @@ jobs:
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
       SHEET_NAME: ${{ secrets.SHEET_NAME }}
+      POSITION_SHEET_NAME: ${{ secrets.POSITION_SHEET_NAME  }}
       LOOP_FREQ_SECONDS: ${{ secrets.LOOP_FREQ_SECONDS }}
     steps:
       - name: Checkout
