@@ -1,4 +1,4 @@
-name: Goldbees Trader
+name: Simple Generator Workflow
 
 on:
   schedule:
@@ -8,9 +8,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: goldbees-trader
-  cancel-in-progress: false
 
 jobs:
   trade:
