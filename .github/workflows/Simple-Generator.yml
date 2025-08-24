@@ -28,7 +28,6 @@ jobs:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
-      SHEET_NAME: ${{ secrets.SHEET_NAME }}
       POSITION_SHEET_NAME: ${{ secrets.POSITION_SHEET_NAME  }}
       LOOP_FREQ_SECONDS: ${{ secrets.LOOP_FREQ_SECONDS }}
     steps:
