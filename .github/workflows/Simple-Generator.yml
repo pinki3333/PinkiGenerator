@@ -10,7 +10,7 @@ permissions:
 
 
 jobs:
-  trade:
+  generator:
     runs-on: ubuntu-latest
     timeout-minutes: 360   
     env:
