@@ -1,4 +1,4 @@
-name: Simple Generator Workflow
+name: Simple Generator Workflows
 
 on:
   schedule:
