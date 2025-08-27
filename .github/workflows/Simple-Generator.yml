@@ -45,10 +45,13 @@ jobs:
           pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib requests pyotp gspread oauth2client holidays growwapi
 
       - name: Skip if holiday, weekend, or market closed
+        id: market
         run: python scripts/market_check.py
 
       - name: Download private generator script from Google Drive
+        if: steps.market.outputs.market_open == 'true'
         run: python scripts/runner.py --download-only
 
       - name: Run generator
+        if: steps.market.outputs.market_open == 'true'
         run: python scripts/runner.py --run

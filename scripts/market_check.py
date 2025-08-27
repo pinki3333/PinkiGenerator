@@ -28,6 +28,8 @@ def is_market_open_day():
     return True
 
 if __name__ == "__main__":
-    if not is_market_open_day():
-        sys.exit(0)  # exit gracefully so job stops
-    sys.exit(0)
+    market_open = is_market_open_day()
+    
+    # Write output for GitHub Actions
+    with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+        f.write(f"market_open={str(market_open).lower()}\n")
