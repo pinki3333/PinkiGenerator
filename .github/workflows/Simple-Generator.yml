@@ -1,9 +1,9 @@
-name: Simple Generator Workflows
+name: Simple Generator Workflow
 
 on:
   schedule:
     # 09:15 IST == 03:45 UTC (Mon-Fri)
-    - cron: "45 3 * * 1-5"
+    - cron: "30 4 * * 1-5"
 
 permissions:
   contents: read
