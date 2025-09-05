@@ -3,7 +3,7 @@ name: Simple Generator Workflow
 on:
   schedule:
     # 09:15 IST == 03:45 UTC (Mon-Fri)
-    - cron: "10 4 * * 1-5"
+    - cron: "40 4 * * 1-5"
 
 permissions:
   contents: read
