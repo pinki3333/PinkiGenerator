@@ -12,10 +12,10 @@ def is_market_open_day():
         print("Weekend detected, exiting.")
         return False
 
-    # NSE holidays
-    if now.date() in ind_holidays:
-        print(f"Holiday detected: {ind_holidays.get(now.date())}, exiting.")
-        return False
+    # # NSE holidays
+    # if now.date() in ind_holidays:
+        # print(f"Holiday detected: {ind_holidays.get(now.date())}, exiting.")
+        # return False
 
     # Market hours check
     market_open = now.replace(hour=9, minute=15, second=0, microsecond=0)
