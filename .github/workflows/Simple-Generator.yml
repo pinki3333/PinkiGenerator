@@ -3,11 +3,11 @@ name: Simple Generator Workflow
 on:
   schedule:
     # 09:15 IST == 03:45 UTC (Mon-Fri)
-    - cron: "40 4 * * 1-5"
+    - cron: "45 3 * * 1-5"
+  workflow_dispatch:   
 
 permissions:
   contents: read
-
 
 jobs:
   generator:
@@ -28,7 +28,7 @@ jobs:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
       SPREADSHEET_ID: ${{ secrets.SPREADSHEET_ID }}
-      POSITION_SHEET_NAME: ${{ secrets.POSITION_SHEET_NAME  }}
+      POSITION_SHEET_NAME: ${{ secrets.POSITION_SHEET_NAME }}
       LOOP_FREQ_SECONDS: ${{ secrets.LOOP_FREQ_SECONDS }}
     steps:
       - name: Checkout
